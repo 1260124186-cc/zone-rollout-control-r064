@@ -142,6 +142,8 @@ ready --lease--> leased --report--> ready
 - `success_ratio_below_minimum`
 - `latency_limit_exceeded`
 
+判定读取支持按修订标识定位该版本最后一次完成的判定；修订不存在、不属于该计划或尚未判定时返回明确空态，不回退到其他版本的结果。
+
 ## 5. 工作流
 
 ### W1 计划生命周期和区域版本
@@ -200,6 +202,7 @@ ready --lease--> leased --report--> ready
 
 - `PATCH /v1/plans/{id}/assessments`
 - `GET /v1/plans/{id}/assessments/latest`
+- `GET /v1/plans/{id}/assessments/by-revision/{revision_id}`
 
 步骤：
 
@@ -260,6 +263,7 @@ ready --lease--> leased --report--> ready
 - `PATCH /v1/leases/{id}/probes`
 - `PATCH /v1/plans/{id}/assessments`
 - `GET /v1/plans/{id}/assessments/latest`
+- `GET /v1/plans/{id}/assessments/by-revision/{revision_id}`
 
 ## 8. 工程机制
 

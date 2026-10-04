@@ -44,7 +44,7 @@ internal/plan               计划及区域版本服务
 internal/fleet              解析节点档案服务
 internal/allocation         节点选择和租约生命周期
 internal/probe              探针登记、幂等重放和租约完成
-internal/assessment         一致性聚合和最新结果查询
+internal/assessment         一致性聚合、最新结果和按修订查询
 internal/httpapi            HTTP 路由、中间件和响应映射
 internal/workflowprobe      真实 HTTP 路径验证
 ```
@@ -178,6 +178,7 @@ curl -sS -X PATCH http://127.0.0.1:8090/v1/plans/<plan_id>/assessments \
 | `PATCH` | `/v1/leases/{id}/probes` | 登记探针并完成租约 |
 | `PATCH` | `/v1/plans/{id}/assessments` | 创建一致性判定 |
 | `GET` | `/v1/plans/{id}/assessments/latest` | 查询最近判定 |
+| `GET` | `/v1/plans/{id}/assessments/by-revision/{revision_id}` | 按区域版本查询最后一次判定 |
 
 ## 状态及失败行为
 
@@ -188,6 +189,7 @@ curl -sS -X PATCH http://127.0.0.1:8090/v1/plans/<plan_id>/assessments \
 - 一个节点同一时刻最多有一个 `claimed` 租约。
 - 相同请求键和相同内容可安全重放；同键异载荷返回 `idempotency_conflict`。
 - 一致性判定综合节点覆盖率、序列号、成功比例和最大延迟，返回 `consistent` 或 `review_required`。
+- 判定可按修订标识查询该版本最后一次结果；修订不存在、属于其他计划或尚未判定时返回 `not_found`，不回退到其他版本。
 - 所有校验和冲突在快照替换前返回，不留下部分状态。
 
 ## 后续工程任务的行为边界

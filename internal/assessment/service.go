@@ -109,3 +109,46 @@ func (s *Service) Latest(ctx context.Context, planID string) (domain.RolloutAsse
 	})
 	return result, err
 }
+
+func (s *Service) ForRevision(
+	ctx context.Context,
+	planID string,
+	revisionID string,
+) (domain.RolloutAssessment, error) {
+	var result domain.RolloutAssessment
+	err := s.store.Read(ctx, func(state *domain.State) error {
+		plan, ok := state.Plans[planID]
+		if !ok {
+			return domain.NotFound("plan", planID)
+		}
+		revision, ok := state.Revisions[revisionID]
+		if !ok || revision.PlanID != plan.ID {
+			return domain.NotFound("revision", revisionID)
+		}
+		found := false
+		var latest domain.RolloutAssessment
+		for _, candidate := range state.Assessments {
+			if candidate.RevisionID != revision.ID {
+				continue
+			}
+			if candidate.PlanID != plan.ID {
+				return domain.NewError(domain.CodeStorageFailure, "assessment references a different plan", map[string]any{
+					"assessment_id": candidate.ID,
+					"revision_id":   revision.ID,
+				})
+			}
+			if !found ||
+				candidate.CreatedAt.After(latest.CreatedAt) ||
+				(candidate.CreatedAt.Equal(latest.CreatedAt) && candidate.ID > latest.ID) {
+				latest = candidate
+				found = true
+			}
+		}
+		if !found {
+			return domain.NotFound("assessment", revisionID)
+		}
+		result = latest
+		return nil
+	})
+	return result, err
+}
