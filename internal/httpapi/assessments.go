@@ -28,3 +28,12 @@ func (s *Server) latestAssessment(w http.ResponseWriter, r *http.Request) {
 	}
 	sendData(w, r, http.StatusOK, result)
 }
+
+func (s *Server) revisionAssessment(w http.ResponseWriter, r *http.Request) {
+	result, err := s.assessments.ForRevision(r.Context(), r.PathValue("id"), r.PathValue("revisionId"))
+	if err != nil {
+		sendError(w, r, err)
+		return
+	}
+	sendData(w, r, http.StatusOK, result)
+}

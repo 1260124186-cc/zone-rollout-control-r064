@@ -178,6 +178,7 @@ curl -sS -X PATCH http://127.0.0.1:8090/v1/plans/<plan_id>/assessments \
 | `PATCH` | `/v1/leases/{id}/probes` | 登记探针并完成租约 |
 | `PATCH` | `/v1/plans/{id}/assessments` | 创建一致性判定 |
 | `GET` | `/v1/plans/{id}/assessments/latest` | 查询最近判定 |
+| `GET` | `/v1/plans/{id}/revisions/{revisionId}/assessment` | 按区域版本查询最后一次判定 |
 
 ## 状态及失败行为
 

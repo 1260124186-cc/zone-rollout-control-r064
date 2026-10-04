@@ -88,6 +88,47 @@ func (s *Service) Evaluate(
 	return result, err
 }
 
+// ForRevision returns the last completed assessment for one specific zone
+// revision of a plan. The read is strict: the revision must belong to the
+// plan and only assessments referencing that exact revision are considered,
+// so a revision without assessments yields a clear not_found instead of
+// falling back to another revision's result.
+func (s *Service) ForRevision(
+	ctx context.Context,
+	planID string,
+	revisionID string,
+) (domain.RolloutAssessment, error) {
+	var result domain.RolloutAssessment
+	err := s.store.Read(ctx, func(state *domain.State) error {
+		if _, ok := state.Plans[planID]; !ok {
+			return domain.NotFound("plan", planID)
+		}
+		revision, ok := state.Revisions[revisionID]
+		if !ok || revision.PlanID != planID {
+			return domain.NotFound("revision", revisionID)
+		}
+		found := false
+		var latest domain.RolloutAssessment
+		for _, candidate := range state.Assessments {
+			if candidate.PlanID != planID || candidate.RevisionID != revisionID {
+				continue
+			}
+			if !found ||
+				candidate.CreatedAt.After(latest.CreatedAt) ||
+				(candidate.CreatedAt.Equal(latest.CreatedAt) && candidate.ID > latest.ID) {
+				latest = candidate
+				found = true
+			}
+		}
+		if !found {
+			return domain.NotFound("assessment", revisionID)
+		}
+		result = latest
+		return nil
+	})
+	return result, err
+}
+
 func (s *Service) Latest(ctx context.Context, planID string) (domain.RolloutAssessment, error) {
 	var result domain.RolloutAssessment
 	err := s.store.Read(ctx, func(state *domain.State) error {

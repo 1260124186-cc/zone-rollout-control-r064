@@ -260,6 +260,7 @@ ready --lease--> leased --report--> ready
 - `PATCH /v1/leases/{id}/probes`
 - `PATCH /v1/plans/{id}/assessments`
 - `GET /v1/plans/{id}/assessments/latest`
+- `GET /v1/plans/{id}/revisions/{revisionId}/assessment`
 
 ## 8. 工程机制
 
